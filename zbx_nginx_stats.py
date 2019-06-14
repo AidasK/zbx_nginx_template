@@ -142,6 +142,7 @@ total_rps = 0
 rps = [0]*60
 tps = [0]*60
 res_code = {}
+res_grouped = {}
 
 nf = open(nginx_log_file_path, 'r')
 
@@ -162,6 +163,11 @@ while line:
             res_code[code] += 1
         else:
             res_code[code] = 1
+        codeg = code[0]
+        if codeg in res_grouped:
+            res_grouped[codeg] += 1
+        else:
+            res_grouped[codeg] = 1
 
         rps[sec] += 1
     line = nf.readline()
@@ -192,5 +198,8 @@ for t in range(0,60):
 for t in res_code:
     data_to_send.append(Metric(hostname, ('nginx[%s]' % t), res_code[t]))
 
+# Adding the grouped response codes stats to respons
+for t in res_grouped:
+    data_to_send.append(Metric(hostname, ('nginx[%sxx]' % t), res_grouped[t]))
 
 send_to_zabbix(data_to_send, zabbix_host, zabbix_port)
